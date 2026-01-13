@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import sys
 
 from config.settings import (
-    SYMBOL, TRADE_SHARES, RISK_PER_TRADE,
+    SYMBOL, RISK_PERCENT, RISK_PER_TRADE,
     ALPACA_API_KEY, ALPACA_SECRET_KEY, ALPACA_BASE_URL
 )
 
@@ -23,7 +23,7 @@ class AutomatedTradingSystem:
             api_version='v2'
         )
         self.symbol = SYMBOL
-        self.trade_shares = TRADE_SHARES
+        self.risk_percent = RISK_PERCENT
         
         from strategies.main_strategy import SimpleCombinedWithATR
         self.strategy = SimpleCombinedWithATR(risk_per_trade=RISK_PER_TRADE)
@@ -99,6 +99,10 @@ class AutomatedTradingSystem:
         signal = df['signal'].iloc[-1]
         signal_text = "BUY" if signal == 1 else "SELL" if signal == -1 else "HOLD"
         
+        # Get latest ATR and price for position sizing
+        latest_atr = df['atr'].iloc[-1]
+        latest_price = df['close'].iloc[-1]
+        
         # 4. Check existing position
         try:
             position = self.api.get_position(self.symbol)
@@ -115,19 +119,33 @@ class AutomatedTradingSystem:
             print(f"   Unrealized P&L: ${pnl:+.2f}")
         except:
             has_position = False
+            current_price = latest_price
             print(f"\n📦 EXISTING POSITION: None")
         
         # 5. Execute trading logic
         print(f"\n🎯 STRATEGY SIGNAL: {signal_text}")
         
         if signal == 1 and not has_position:
+            # Calculate position size based on risk
+            # Risk amount = Account Equity * Risk%
+            # Stop loss distance = ATR * 1.5
+            # Shares = Risk amount / Stop loss distance
+            risk_amount = equity * self.risk_percent
+            stop_distance = latest_atr * 1.5
+            calculated_shares = max(1, int(risk_amount / stop_distance))
+            
+            print(f"\n📊 POSITION SIZING ({self.risk_percent*100:.1f}% of ${equity:,.0f}):")
+            print(f"   Risk Amount: ${risk_amount:.2f}")
+            print(f"   ATR: ${latest_atr:.2f}, Stop Distance: ${stop_distance:.2f}")
+            print(f"   Calculated Shares: {calculated_shares}")
+            
             # BUY signal, no position
-            print(f"🚀 ACTION: BUY {self.trade_shares} shares")
+            print(f"\n🚀 ACTION: BUY {calculated_shares} shares")
             
             try:
                 order = self.api.submit_order(
                     symbol=self.symbol,
-                    qty=self.trade_shares,
+                    qty=calculated_shares,
                     side='buy',
                     type='market',
                     time_in_force='day'
@@ -137,7 +155,7 @@ class AutomatedTradingSystem:
                 # Send alert
                 if self.use_telegram:
                     self.telegram.send_trade_alert(
-                        'BUY', self.symbol, TRADE_SHARES, current_price
+                        'BUY', self.symbol, calculated_shares, current_price
                     )
                     
             except Exception as e:

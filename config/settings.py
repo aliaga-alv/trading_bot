@@ -9,8 +9,13 @@ load_dotenv()
 # TRADING PARAMETERS
 # =============================================================================
 SYMBOL = os.getenv("TRADING_SYMBOL", "AAPL")
+
+# Position sizing - risk % of actual account balance
+RISK_PERCENT = float(os.getenv("RISK_PERCENT", "0.025"))  # 2.5% risk per trade
+
+# Legacy (fallback)
 TRADE_SHARES = int(os.getenv("TRADE_SHARES", "5"))
-INITIAL_CAPITAL = float(os.getenv("INITIAL_CAPITAL", "100000"))
+INITIAL_CAPITAL = float(os.getenv("INITIAL_CAPITAL", "1000"))
 
 # Backtesting date range
 BACKTEST_START_DATE = "2020-01-01"
