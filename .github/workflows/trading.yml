@@ -1,0 +1,35 @@
+name: Daily Trading Bot
+
+on:
+  schedule:
+    # Run at 10:05 AM ET (14:05 UTC) on weekdays
+    - cron: '5 14 * * 1-5'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  trade:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run trading bot
+        env:
+          APCA_API_KEY_ID: ${{ secrets.APCA_API_KEY_ID }}
+          APCA_API_SECRET_KEY: ${{ secrets.APCA_API_SECRET_KEY }}
+          TRADING_SYMBOL: ${{ vars.TRADING_SYMBOL || 'AAPL' }}
+        run: |
+          python auto_trading_system.py
