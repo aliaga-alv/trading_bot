@@ -6,14 +6,16 @@ import os
 from dotenv import load_dotenv
 import numpy as np
 
+from config.settings import ALPACA_API_KEY, ALPACA_SECRET_KEY, ALPACA_BASE_URL
+
 load_dotenv()
 
 class LiveDashboard:
     def __init__(self):
         self.api = tradeapi.REST(
-            os.getenv('APCA_API_KEY_ID'),
-            os.getenv('APCA_API_SECRET_KEY'),
-            'https://paper-api.alpaca.markets',
+            ALPACA_API_KEY,
+            ALPACA_SECRET_KEY,
+            ALPACA_BASE_URL,
             api_version='v2'
         )
     

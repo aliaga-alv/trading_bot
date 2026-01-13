@@ -2,16 +2,14 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from config.settings import (
+    SYMBOL, BACKTEST_START_DATE, BACKTEST_END_DATE, 
+    INITIAL_CAPITAL, COMMISSION
+)
 from data.data_fetcher import DataFetcher
 from strategies.main_strategy import SimpleCombinedWithATR
 from backtesting.backtester import Backtester
 import matplotlib.pyplot as plt
-
-# Settings
-SYMBOL = "AAPL"
-START_DATE = "2020-01-01"
-END_DATE = "2023-12-31"
-INITIAL_CAPITAL = 10000
 
 def main():
     print("="*60)
@@ -19,9 +17,9 @@ def main():
     print("="*60)
     
     # Initialize
-    fetcher = DataFetcher(SYMBOL, START_DATE, END_DATE)
-    strategy = SimpleCombinedWithATR(risk_per_trade=0.02)
-    backtester = Backtester(initial_capital=INITIAL_CAPITAL)
+    fetcher = DataFetcher(SYMBOL, BACKTEST_START_DATE, BACKTEST_END_DATE)
+    strategy = SimpleCombinedWithATR()
+    backtester = Backtester(initial_capital=INITIAL_CAPITAL, commission=COMMISSION)
     
     # Fetch data
     print(f"\n1. Fetching {SYMBOL} data...")
@@ -49,8 +47,8 @@ def main():
     fig.savefig('trading_charts.png', dpi=300, bbox_inches='tight')
     
     print("\n✅ Trading bot complete!")
-    print("   Strategy: 20/50 EMA + RSI + ATR")
-    print(f"   Period: {START_DATE} to {END_DATE}")
+    print(f"   Strategy: {strategy.ma_fast}/{strategy.ma_slow} EMA + RSI + ATR")
+    print(f"   Period: {BACKTEST_START_DATE} to {BACKTEST_END_DATE}")
     print(f"   Initial Capital: ${INITIAL_CAPITAL:,}")
     print(f"   Final Portfolio: ${float(metrics['Final Portfolio Value'][1:].replace(',','')):,.2f}")
 

@@ -1,13 +1,20 @@
 import pandas as pd
 import numpy as np
+from config.settings import (
+    FAST_MA, SLOW_MA, RSI_PERIOD, RSI_OVERSOLD, RSI_OVERBOUGHT,
+    ATR_PERIOD, RISK_PER_TRADE, ATR_MULTIPLIER
+)
 
 class SimpleCombinedWithATR:
-    def __init__(self, risk_per_trade=0.02):  # 2% risk per trade
-        self.ma_fast = 20
-        self.ma_slow = 50
-        self.rsi_period = 14
-        self.atr_period = 14
-        self.risk_per_trade = risk_per_trade
+    def __init__(self, risk_per_trade=None):
+        self.ma_fast = FAST_MA
+        self.ma_slow = SLOW_MA
+        self.rsi_period = RSI_PERIOD
+        self.rsi_oversold = RSI_OVERSOLD
+        self.rsi_overbought = RSI_OVERBOUGHT
+        self.atr_period = ATR_PERIOD
+        self.risk_per_trade = risk_per_trade or RISK_PER_TRADE
+        self.atr_multiplier = ATR_MULTIPLIER
         
     def calculate_indicators(self, df):
         df = df.copy()
@@ -43,29 +50,28 @@ class SimpleCombinedWithATR:
         # Buy conditions
         buy_condition = (
             (df['ma_fast'] > df['ma_slow']) & 
-            (df['rsi'] > 40) & 
-            (df['rsi'] < 80)
+            (df['rsi'] > self.rsi_oversold) & 
+            (df['rsi'] < self.rsi_overbought)
         )
         
         # Sell conditions
         sell_condition = (
             (df['ma_fast'] < df['ma_slow']) | 
-            (df['rsi'] > 85)
+            (df['rsi'] > self.rsi_overbought)
         )
         
         df.loc[buy_condition, 'signal'] = 1
         df.loc[sell_condition, 'signal'] = -1
         
         # Calculate position size based on ATR (risk management)
-        # Position size = Risk per trade / (ATR * 1.5)
-        # This means we risk 2% of capital, stop loss is 1.5x ATR away
+        # Position size = Risk per trade / (ATR * multiplier)
         for i in range(len(df)):
             if df['signal'].iloc[i] == 1 and df['atr'].iloc[i] > 0:
                 df.iloc[i, df.columns.get_loc('position_size')] = min(
-                    self.risk_per_trade / (df['atr'].iloc[i] * 1.5 / df['close'].iloc[i]),
+                    self.risk_per_trade / (df['atr'].iloc[i] * self.atr_multiplier / df['close'].iloc[i]),
                     1.0  # Max 100% position
                 )
-                df.iloc[i, df.columns.get_loc('stop_loss')] = df['close'].iloc[i] - (df['atr'].iloc[i] * 1.5)
+                df.iloc[i, df.columns.get_loc('stop_loss')] = df['close'].iloc[i] - (df['atr'].iloc[i] * self.atr_multiplier)
         
         # Position logic
         position = 0

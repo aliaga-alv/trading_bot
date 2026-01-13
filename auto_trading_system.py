@@ -7,20 +7,26 @@ import os
 from dotenv import load_dotenv
 import sys
 
+from config.settings import (
+    SYMBOL, TRADE_SHARES, RISK_PER_TRADE,
+    ALPACA_API_KEY, ALPACA_SECRET_KEY, ALPACA_BASE_URL
+)
+
 load_dotenv()
 
 class AutomatedTradingSystem:
     def __init__(self):
         self.api = tradeapi.REST(
-            os.getenv('APCA_API_KEY_ID'),
-            os.getenv('APCA_API_SECRET_KEY'),
-            'https://paper-api.alpaca.markets',
+            ALPACA_API_KEY,
+            ALPACA_SECRET_KEY,
+            ALPACA_BASE_URL,
             api_version='v2'
         )
-        self.symbol = "AAPL"
+        self.symbol = SYMBOL
+        self.trade_shares = TRADE_SHARES
         
         from strategies.main_strategy import SimpleCombinedWithATR
-        self.strategy = SimpleCombinedWithATR(risk_per_trade=0.02)
+        self.strategy = SimpleCombinedWithATR(risk_per_trade=RISK_PER_TRADE)
         
         # Telegram alerts (optional)
         self.use_telegram = False
@@ -114,16 +120,14 @@ class AutomatedTradingSystem:
         # 5. Execute trading logic
         print(f"\n🎯 STRATEGY SIGNAL: {signal_text}")
         
-        TRADE_SHARES = 5
-        
         if signal == 1 and not has_position:
             # BUY signal, no position
-            print(f"🚀 ACTION: BUY {TRADE_SHARES} shares")
+            print(f"🚀 ACTION: BUY {self.trade_shares} shares")
             
             try:
                 order = self.api.submit_order(
                     symbol=self.symbol,
-                    qty=TRADE_SHARES,
+                    qty=self.trade_shares,
                     side='buy',
                     type='market',
                     time_in_force='day'
