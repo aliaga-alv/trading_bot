@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+from config.settings import SYMBOL
+
 class Backtester:
     """Simple backtesting engine"""
     
@@ -104,8 +106,10 @@ class Backtester:
         
         return metrics
     
-    def plot_results(self, df, symbol="AAPL"):
+    def plot_results(self, df, symbol=None):
         """Plot backtest results"""
+        if symbol is None:
+            symbol = SYMBOL
         print("📊 Generating charts...")
         
         fig, axes = plt.subplots(2, 1, figsize=(12, 8))

@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 import subprocess
 import sys
 
+from config.settings import SYMBOL
+
 def monitor_trading_bot():
     """Monitor trading bot in real-time"""
     print("📊 TRADING BOT LIVE MONITOR")
@@ -77,12 +79,13 @@ import alpaca_trade_api as tradeapi
 import os
 from dotenv import load_dotenv
 load_dotenv()
+from config.settings import SYMBOL
 api = tradeapi.REST(os.getenv("APCA_API_KEY_ID"), os.getenv("APCA_API_SECRET_KEY"), "https://paper-api.alpaca.markets")
 try:
-    pos = api.get_position("AAPL")
-    print(f"AAPL: {pos.qty} shares, P&L: ${float(pos.unrealized_pl):+.2f}")
+    pos = api.get_position(SYMBOL)
+    print(f"{SYMBOL}: {pos.qty} shares, P&L: ${float(pos.unrealized_pl):+.2f}")
 except:
-    print("AAPL: No position")
+    print(f"{SYMBOL}: No position")
 '''
                     result = subprocess.run(
                         [sys.executable, '-c', check_code],
