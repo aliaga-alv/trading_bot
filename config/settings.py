@@ -10,7 +10,9 @@ load_dotenv()
 # =============================================================================
 SYMBOL = os.getenv("TRADING_SYMBOL", "AAPL")
 
-# Position sizing - risk % of actual account balance
+# Position sizing - simulated capital for realistic risk management
+# Your Alpaca paper account has $100k, but we pretend it's $1k
+SIMULATED_CAPITAL = float(os.getenv("SIMULATED_CAPITAL", "1000"))
 RISK_PERCENT = float(os.getenv("RISK_PERCENT", "0.025"))  # 2.5% risk per trade
 
 # Legacy (fallback)

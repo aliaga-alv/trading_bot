@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import sys
 
 from config.settings import (
-    SYMBOL, RISK_PERCENT, RISK_PER_TRADE,
+    SYMBOL, SIMULATED_CAPITAL, RISK_PERCENT, RISK_PER_TRADE,
     ALPACA_API_KEY, ALPACA_SECRET_KEY, ALPACA_BASE_URL
 )
 
@@ -23,6 +23,7 @@ class AutomatedTradingSystem:
             api_version='v2'
         )
         self.symbol = SYMBOL
+        self.simulated_capital = SIMULATED_CAPITAL
         self.risk_percent = RISK_PERCENT
         
         from strategies.main_strategy import SimpleCombinedWithATR
@@ -126,15 +127,15 @@ class AutomatedTradingSystem:
         print(f"\n🎯 STRATEGY SIGNAL: {signal_text}")
         
         if signal == 1 and not has_position:
-            # Calculate position size based on risk
-            # Risk amount = Account Equity * Risk%
+            # Calculate position size based on SIMULATED capital (not actual $100k)
+            # Risk amount = Simulated Capital * Risk%
             # Stop loss distance = ATR * 1.5
             # Shares = Risk amount / Stop loss distance
-            risk_amount = equity * self.risk_percent
+            risk_amount = self.simulated_capital * self.risk_percent
             stop_distance = latest_atr * 1.5
             calculated_shares = max(1, int(risk_amount / stop_distance))
             
-            print(f"\n📊 POSITION SIZING ({self.risk_percent*100:.1f}% of ${equity:,.0f}):")
+            print(f"\n📊 POSITION SIZING (${self.simulated_capital:,.0f} simulated, {self.risk_percent*100:.1f}% risk):")
             print(f"   Risk Amount: ${risk_amount:.2f}")
             print(f"   ATR: ${latest_atr:.2f}, Stop Distance: ${stop_distance:.2f}")
             print(f"   Calculated Shares: {calculated_shares}")
