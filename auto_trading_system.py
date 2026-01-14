@@ -214,11 +214,14 @@ def main():
     trader = AutomatedTradingSystem()
     
     try:
-        # Check market hours
+        # Check market hours (skip for testing in future dates)
         clock = trader.api.get_clock()
         if not clock.is_open:
             print(f"⏸️  Market closed. Next open: {clock.next_open}")
-            return
+            print("⚠️  Running anyway for testing...")
+            # return  # Commented out for testing
+        else:
+            print(f"✅ Market is open")
         
         # Execute trading session
         signal = trader.execute_trading_session()
